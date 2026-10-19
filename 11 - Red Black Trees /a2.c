@@ -9,61 +9,76 @@ typedef struct Node{
     char color;
 }Node;
 
-typedef struct RedBlackTree{
-    struct Node* root;
-    struct Node* NIL;
-}RedBlackTree;
+typedef struct RBTree{
+    Node* root;
+    Node* nil;
+}RBTree;
 
-RedBlackTree* createTree(){
-    RedBlackTree* tree = (RedBlackTree*)malloc(sizeof(RedBlackTree));
-    tree->NIL = (Node*)malloc(sizeof(Node));
-    tree->NIL->color = 1;
-    tree->NIL->parent = tree->NIL;
-    tree->NIL->right = tree->NIL;
-    tree->NIL->left = tree->NIL;
-    tree->root = tree->NIL;
-
-    return tree;
-}
-
-Node* createNode(int data){
+Node* createNode(RBTree* tree ,int data){
     Node* node = (Node*)malloc(sizeof(Node));
-    node->color = 0;
-    node->parent = NULL;
-    node->left= NULL;
-    node->right = NULL;
+    node->left= tree->nil;
+    node->right = tree->nil;
+    node->parent = tree->nil;
     node->data = data;
+    node->color = '0'; // by default color of the node is red
     return node;
 }
 
-void inorder(RedBlackTree* tree,Node* root){
-    if(root == tree->NIL)   return;
+RBTree* createTree(){
+    RBTree* tree = (RBTree*)malloc(sizeof(RBTree));
+    tree->nil = (Node*)malloc(sizeof(Node));
+    tree->nil->parent =tree->nil;
+    tree->nil->right = tree->nil;
+    tree->nil->left = tree->nil;
+    tree->nil->color = '1'; //default color of leaf node is black
+    tree->root = tree->nil;
+    return tree;
+}
+
+void leftRotate(RBTree* tree,Node* x){
+    Node* y = x->right;
+    x->right = y->left;
+    if(y->left!=tree->nil){
+        y->left->parent = x;
+    }
     
-    inorder(tree,root->left);
-    printf("[%d %d]\t",root->data,root->color);
-    inorder(tree,root->right);
+    // case1 :  if x is root
+    if(x->parent==tree->nil){
+        tree->root = y;
+    }
+    else if(x == x->parent->left){
+        x->parent->left = y;
+    }
+    else if(x==x->parent->right){
+        x->parent->right = y;
+    }
+
+    y->parent = x->parent;
+    y->left = x;
+    x->parent = y;
 }
 
-//Successor of node in Red Black Tree
-Node* successor(RedBlackTree* tree,Node* root){
-    if(root==tree->NIL) return root;
-
-    Node* temp = root;
-    while(temp->left!=tree->NIL){
-        temp = temp->left;
+void rightRotate(RBTree* tree,Node* x){
+    Node* y = x->left;
+    x->left = y->right;
+    
+    if(y->right !=tree->nil){
+        y->right->parent = x;
     }
-    return temp;
-}
 
-//Predecessor 
-Node* predecessor(RedBlackTree* tree,Node* root){
-    if(root == tree->NIL)   return root;
-
-    Node* temp = root;
-    while(temp->right!=tree->NIL){
-        temp = temp->right;
+    if(x->parent == tree->nil){
+        tree->root = y;
     }
-    return temp;
+    else if(x == x->parent->left){
+        x->parent->left = y;
+    }
+    else if(x == x->parent->right){
+        x->parent->right = y;
+    }
+
+    y->parent = x->parent;
+    y->right = x;
+    x->parent = y;
 }
 
 int main(){

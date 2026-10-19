@@ -9,194 +9,162 @@ typedef struct Node{
     struct Node* parent;
 }Node;
 
-typedef struct RedBlackTree{
-    struct Node* root ;
-    struct Node* NIL;
-}RedBlackTree;
+typedef struct RBTree{
+    Node* root;
+    Node* nil;
+}RBTree;
 
-RedBlackTree* createTree(){
-    RedBlackTree* tree = (RedBlackTree*)malloc(sizeof(RedBlackTree));
-    tree->NIL = (Node*)malloc(sizeof(Node));
-    tree->NIL->color= 1;
-    tree->NIL->parent = tree->NIL;
-    tree->NIL->left = tree->NIL;
-    tree->NIL->right = tree->NIL;
-
-    tree->root= tree->NIL;
-    return tree;
-}
-
-Node* createNode(RedBlackTree* tree ,int data){
+Node* createNode(RBTree* tree,int data){
     Node* node = (Node*)malloc(sizeof(Node));
+    node->color = '1';
+    node->parent = tree->nil;
+    node->right = tree->nil;
+    node->left = tree->nil;
     node->data = data;
-    node->color = 0;
-    node->left = tree->NIL;
-    node->right = tree->NIL;
-    node->parent = tree->NIL;
     return node;
 }
 
-void inorder(RedBlackTree* tree,Node* root){
-    if(root == tree->NIL)   return;
+RBTree* createTree(){
+    RBTree* tree = (RBTree*) malloc(sizeof(RBTree));
+    tree->nil = (Node*)malloc(sizeof(Node));
+    tree->nil->parent = tree->nil;
+    tree->nil->left = tree->nil;
+    tree->nil->right = tree->nil;
+    tree->nil->color = '0';
 
-    inorder(tree,root->left);
-    printf("[%d %d]\t",root->data,root->color);
-    inorder(tree,root->right);
+    tree->root = tree->nil;
+
+    return tree;
 }
 
-void left_rotate(RedBlackTree* tree,Node* curr){
+void leftRotate(RBTree* tree,Node* x){
+    Node* y = x->right;
+    x->right = y->left;
+    if(y->left!=tree->nil){
+        y->left->parent = x;
+    }
 
-    Node* temp = curr->right;
-    curr->right = temp->left;
-
-    if(temp->left!=tree->NIL){
-        temp->left->parent = curr;
+    if(x->parent == tree->nil){
+        tree->root = y;
     }
-    
-    temp->parent = curr->parent;
-    
-    if(curr->parent == tree->NIL){
-        tree->root = temp;
+    else if(x == x->parent->left){
+        x->parent->left = y;
     }
-    else if(curr == curr->parent->left){
-        curr->parent->left = temp;
+    else if(y == x->parent->right){
+        x->parent->right = y;
     }
-    else if(curr == curr->parent->right){
-        curr->parent->right = temp;
-    }
-    temp->left = curr;
-    curr->parent = temp;
+    y->parent = x->parent ;
+    y->left = x;
+    x->parent = y;
 }
 
-void right_rotate(RedBlackTree* tree,Node* curr){
-    Node* temp = curr->left;
-    curr->left = temp->right;
-
-    //if right node is not null;
-    if(temp->right!=tree->NIL){
-        temp->right->parent = curr;
+void rightRotate(RBTree* tree,Node* x){
+    Node* y = x->left;
+    x->left = y->right;
+    if(y->right!=tree->nil){
+        y->right->parent = x;
     }
 
-    //make temp parent to curr parent 
-
-    temp->parent = curr->parent;
-    
-    // if curr node is root then make temp node to root
-    if(curr->parent ==tree->NIL){
-        tree->root = temp;
+    if(x->parent == tree->nil){
+        tree->root = y;
     }
-
-    // if curr node is on left side
-
-    else if(curr == curr->parent->left){
-        curr->parent->left= temp;
+    else if(x->parent->left == x){
+        x->parent->left = y;
     }
-    // if  curr node is on right side 
-    else if(curr == curr->parent->right){
-        curr->parent->right = temp;
+    else if(x->parent->right == x){
+        x->parent->right = y;
     }
+    y->parent = x->parent;
+    y->right =x;
+    x->parent = y;
 
-    temp->right = curr;
-    curr->parent = temp;
 }
 
-void fix_UP_RBTree(RedBlackTree* tree,Node* newnode){
-    //fix the red black tree 
-    
+void insertFixUp(RBTree* tree, Node* z){
 
-    //violation will only happen if newly inserted node parents is red color node 
-    while(newnode->parent->color == 0){
-        //if uncle is also red color node 
-        //parent is on left side
-        if(newnode->parent == newnode->parent->parent->left){
-            Node* uncle = newnode->parent->parent->right;
-            if(uncle->color == 0){
-                // case 1 : uncle is red color node and parent is also red color node
-                newnode->parent->color = 1;
-                uncle->color = 1;
-                newnode->parent->parent->color = 0;
-                newnode = newnode->parent->parent;
-            }
+    while(z->parent->color == '0'){
+        //case1 : parent is on the left
+        if(z->parent == z->parent->parent->left){
+            Node* uncle = z->parent->parent->right;
+            //case 1.1 : uncle color is red
+            if(uncle->color == '0'){
+                z->parent ->color = '1';
+                uncle->color = '1';
+                z->parent->parent->color = '0';
+                z = z->parent->parent;
+            } 
+
+            //case 1.2 : uncle color is black 
             else{
-                //case 2 : uncle is black color node and new node is on the right 
-                if(newnode==newnode->parent->right){
-                    newnode = newnode->parent;
-                    left_rotate(tree,newnode);
+                // case 1.2.1: z is on the right child
+                if(z == z->parent->right){
+                    z = z->parent;
+                    leftRotate(tree,z);
                 }
-
-                //case 3: uncle is black and z is left child
-                newnode->parent->color = 1;
-                newnode->parent->parent->color =0;
-                right_rotate(tree,newnode->parent->parent); 
+                
+                z->parent->color = '1';
+                z->parent->parent->color = '0';
+                rightRotate(tree,z->parent->parent);
             }
         }
-        //parent is on the right side 
+
+
+        // case2 : parent is on the right;
         else{
-            if(newnode->parent == newnode->parent->parent->right){
-                Node* uncle = newnode->parent->parent->left;
-                // case1 : if uncle is red color node
-                if(uncle->color == 0){
-                    newnode->parent->color = 1;
-                    uncle->color =1;
-                    newnode->parent->parent->color = 0;
-                    newnode = newnode->parent->parent;
-                } 
-                else{
-                    //uncle is black color node and new node is on the left 
-                    if(newnode == newnode->parent->left){
-                        newnode = newnode->parent;
-                        right_rotate(tree,newnode);
-                    }
-
-                    newnode->parent->color = 1;
-                    newnode->parent->parent->color = 0;
-                    left_rotate(tree,newnode->parent->parent);
-                }
+            Node* uncle = z->parent->parent->left;
+            //uncle color is red
+            if(uncle->color =='0'){
+                z->parent->color = '1';
+                uncle->color = '1';
+                z->parent->parent->color = '0';
+                z = z->parent->parent;
             }
+
+            // uncle colr is black
+            else{
+                if(z == z->parent->left){
+                    z = z->parent;
+                    rightRotate(tree,z);
+                }
+                z->parent->color = '1';
+                z->parent->parent->color = '0';
+                leftRotate(tree,z->parent->parent);
+            }
+
+
         }
+        
     }
-    tree->root->color = 1;
-    
+    tree->root->color = '1';
+
 }
 
-void insert_in_RBTree(RedBlackTree* tree,int val){
-    Node* newnode = createNode(tree,val);
-    Node* temp = tree->root;
-
-    Node *y = tree->NIL;
-    while(temp!=tree->NIL){
-        y=temp;
-        if(val<temp->data){
-            temp = temp->left;
+void insert(RBTree* tree, int key){
+    Node* z = createNode(tree,key);
+    Node* y = tree->nil;
+    Node* x = tree->root;
+    while(x!=tree->nil){
+        y=x;
+        if(key<x->data){
+            x = x->left;
         }
-        else{
-            temp = temp->right;
+        else {
+            x = x->right;
         }
     }
-    newnode->parent = y;
 
-    if(y == tree->NIL){
-        tree->root = newnode; 
+    z->parent = y;
+    if(y == tree->nil){
+        tree->root = z;
     }
-    else if(newnode->data<y->data){
-        y->left = newnode;
+    else if(key<y->data){
+        y->left = z;
     }
-    else{
-        y->right = newnode;
+    else {
+        y->right = z;
     }
-    newnode->left = tree->NIL;
-    newnode->right = tree->NIL;
-
-    fix_UP_RBTree(tree,newnode);
 }
 
 int main(){
-    RedBlackTree* tree = createTree();
-    int arr [] = {6,4,2,7,9,1,0,3,5};
-    int n = sizeof(arr)/sizeof(arr[0]);
-    for(int i =0;i<n;i++){
-        insert_in_RBTree(tree,arr[i]);
-    }
-    inorder(tree,tree->root);
 
 }
