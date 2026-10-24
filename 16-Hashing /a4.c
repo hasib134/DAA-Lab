@@ -31,7 +31,7 @@ UHTable* createTable(int p ,int m){
     table->m = m;
     table->p = p;
     
-    table->a = 1 + rand() % p;
+    table->a = 1 + rand() % p-1;
     table->b = rand() % p;
 
     table->table = (Node**)malloc(m * sizeof(Node*));
