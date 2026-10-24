@@ -4,15 +4,15 @@
 //Direct Address table 
 
 #define U_size 1000 //{0,1,...999}
-typedef struct Car{
+typedef struct Node{
     int key;
     char* plate;
     char* model;
     char* owner;
-}Car;
+}Node;
 
 typedef struct DirectAddressTable{
-    Car* table[U_size];
+    Node* table[U_size];
 } DirectAddressTable;
 
 void initializeTable(DirectAddressTable* DTable){
@@ -21,8 +21,8 @@ void initializeTable(DirectAddressTable* DTable){
     }
 }
 
-Car* createNewCar(int key,char* plate,char* model,char* owner){
-    Car* car  = (Car*)malloc(sizeof(Car));
+Node* createNewCar(int key,char* plate,char* model,char* owner){
+    Node* car  = (Node*)malloc(sizeof(Node));
     car->key = key;
     car->plate = plate;
     car->model = model;
@@ -31,22 +31,22 @@ Car* createNewCar(int key,char* plate,char* model,char* owner){
     return car;
 }
 
-void insert(DirectAddressTable* DTable ,Car* car){
+void insert(DirectAddressTable* DTable ,Node* car){
     if(car == NULL || car->key< 0 || car->key>=U_size){
         return ;
     }
     DTable->table[car->key] = car;
 }
 
-Car* search(DirectAddressTable* DTable,int key){
+Node* search(DirectAddressTable* DTable,int key){
     if(key<0 || key>=U_size)    return NULL;
     return DTable->table[key];
 }
 
-void delete(DirectAddressTable* Dtable , Car* car){
+void delete(DirectAddressTable* Dtable , Node* car){
     if(car == NULL || car->key<0 || car->key >=U_size)  return ;
     
-    Car* temp = Dtable->table[car->key];
+    Node* temp = Dtable->table[car->key];
     Dtable->table[car->key] = NULL;
     free(temp);
 }
